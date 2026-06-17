@@ -9,38 +9,160 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as HighlightsRouteImport } from './routes/highlights'
+import { Route as GateRouteImport } from './routes/gate'
+import { Route as CategoriesRouteImport } from './routes/categories'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WatchMatchIdRouteImport } from './routes/watch.$matchId'
+import { Route as PlayMatchIdRouteImport } from './routes/play.$matchId'
+import { Route as CategoriesIdRouteImport } from './routes/categories.$id'
 
+const HighlightsRoute = HighlightsRouteImport.update({
+  id: '/highlights',
+  path: '/highlights',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GateRoute = GateRouteImport.update({
+  id: '/gate',
+  path: '/gate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CategoriesRoute = CategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WatchMatchIdRoute = WatchMatchIdRouteImport.update({
+  id: '/watch/$matchId',
+  path: '/watch/$matchId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlayMatchIdRoute = PlayMatchIdRouteImport.update({
+  id: '/play/$matchId',
+  path: '/play/$matchId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CategoriesIdRoute = CategoriesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => CategoriesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/categories': typeof CategoriesRouteWithChildren
+  '/gate': typeof GateRoute
+  '/highlights': typeof HighlightsRoute
+  '/categories/$id': typeof CategoriesIdRoute
+  '/play/$matchId': typeof PlayMatchIdRoute
+  '/watch/$matchId': typeof WatchMatchIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/categories': typeof CategoriesRouteWithChildren
+  '/gate': typeof GateRoute
+  '/highlights': typeof HighlightsRoute
+  '/categories/$id': typeof CategoriesIdRoute
+  '/play/$matchId': typeof PlayMatchIdRoute
+  '/watch/$matchId': typeof WatchMatchIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/categories': typeof CategoriesRouteWithChildren
+  '/gate': typeof GateRoute
+  '/highlights': typeof HighlightsRoute
+  '/categories/$id': typeof CategoriesIdRoute
+  '/play/$matchId': typeof PlayMatchIdRoute
+  '/watch/$matchId': typeof WatchMatchIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/categories'
+    | '/gate'
+    | '/highlights'
+    | '/categories/$id'
+    | '/play/$matchId'
+    | '/watch/$matchId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin'
+    | '/categories'
+    | '/gate'
+    | '/highlights'
+    | '/categories/$id'
+    | '/play/$matchId'
+    | '/watch/$matchId'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/categories'
+    | '/gate'
+    | '/highlights'
+    | '/categories/$id'
+    | '/play/$matchId'
+    | '/watch/$matchId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  CategoriesRoute: typeof CategoriesRouteWithChildren
+  GateRoute: typeof GateRoute
+  HighlightsRoute: typeof HighlightsRoute
+  PlayMatchIdRoute: typeof PlayMatchIdRoute
+  WatchMatchIdRoute: typeof WatchMatchIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/highlights': {
+      id: '/highlights'
+      path: '/highlights'
+      fullPath: '/highlights'
+      preLoaderRoute: typeof HighlightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gate': {
+      id: '/gate'
+      path: '/gate'
+      fullPath: '/gate'
+      preLoaderRoute: typeof GateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/categories': {
+      id: '/categories'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof CategoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +170,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/watch/$matchId': {
+      id: '/watch/$matchId'
+      path: '/watch/$matchId'
+      fullPath: '/watch/$matchId'
+      preLoaderRoute: typeof WatchMatchIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/play/$matchId': {
+      id: '/play/$matchId'
+      path: '/play/$matchId'
+      fullPath: '/play/$matchId'
+      preLoaderRoute: typeof PlayMatchIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/categories/$id': {
+      id: '/categories/$id'
+      path: '/$id'
+      fullPath: '/categories/$id'
+      preLoaderRoute: typeof CategoriesIdRouteImport
+      parentRoute: typeof CategoriesRoute
+    }
   }
 }
 
+interface CategoriesRouteChildren {
+  CategoriesIdRoute: typeof CategoriesIdRoute
+}
+
+const CategoriesRouteChildren: CategoriesRouteChildren = {
+  CategoriesIdRoute: CategoriesIdRoute,
+}
+
+const CategoriesRouteWithChildren = CategoriesRoute._addFileChildren(
+  CategoriesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  CategoriesRoute: CategoriesRouteWithChildren,
+  GateRoute: GateRoute,
+  HighlightsRoute: HighlightsRoute,
+  PlayMatchIdRoute: PlayMatchIdRoute,
+  WatchMatchIdRoute: WatchMatchIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
