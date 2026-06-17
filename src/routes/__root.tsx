@@ -82,10 +82,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Sports Z — Live cricket, football, motorsports & more in HD. Free streaming app." },
       { name: "author", content: "Sports Z" },
       { property: "og:title", content: "Sports Z — Live HD Sports Streaming" },
-      { property: "og:description", content: "Live cricket, football, motorsports & more in HD." },
+      { property: "og:description", content: "Sports Z — Live cricket, football, motorsports & more in HD. Free streaming app." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Sports Z — Live HD Sports Streaming" },
+      { name: "twitter:description", content: "Sports Z — Live cricket, football, motorsports & more in HD. Free streaming app." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/0a4c33ee-fb80-472a-b3a2-34dea74fb5bc" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/0a4c33ee-fb80-472a-b3a2-34dea74fb5bc" },
     ],
     links: [
       {
