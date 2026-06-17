@@ -58,10 +58,10 @@ function Home() {
 
       <div className="mt-4 space-y-3">
         {filtered.map((m, i) => (
-          <>
-            <MatchCard key={m.id} m={m} />
+          <div key={m.id} className="space-y-3">
+            <MatchCard m={m} />
             {i === 0 && <AdSlot placement="inline" />}
-          </>
+          </div>
         ))}
         {!filtered.length && <p className="py-12 text-center text-sm text-muted-foreground">No matches in this category.</p>}
       </div>
