@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import Hls from "hls.js";
 import { useStore } from "@/lib/store";
 import { ArrowLeft, Maximize, Pause, Play, RotateCcw, RotateCw, Settings, Share2, Lock, PictureInPicture2 } from "lucide-react";
 
@@ -12,10 +13,12 @@ function Player() {
   const { state } = useStore();
   const match = state.matches.find((m) => m.id === matchId);
   const isUpcoming = match?.status === "upcoming";
-  const servers = [
+  // Prefer per-match servers if defined, else fall back to global settings
+  const matchServers = match?.servers?.filter((s) => s.url) ?? [];
+  const servers = matchServers.length > 0 ? matchServers : [
     { name: "SP-1", url: state.servers.server1 },
-    { name: "SP-2", url: state.servers.server1 },
-    { name: "SP-3", url: state.servers.server2 },
+    { name: "SP-2", url: state.servers.server2 },
+    { name: "SP-3", url: state.servers.server3 },
     { name: "Server 1", url: state.servers.server1 },
     { name: "Server 2", url: state.servers.server2 },
     { name: "Server 3", url: state.servers.server3 },
@@ -23,6 +26,7 @@ function Player() {
   const [server, setServer] = useState(0);
   const [showPrompt, setShowPrompt] = useState(true);
   const [playing, setPlaying] = useState(false);
+  const [streamError, setStreamError] = useState<string>("");
   const [brightness, setBrightness] = useState(1);
   const [volume, setVolume] = useState(1);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -30,9 +34,34 @@ function Player() {
 
   const url = isUpcoming
     ? (match?.upcomingVideoUrl || "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8")
-    : servers[server].url;
+    : servers[server]?.url || "";
 
   useEffect(() => { if (videoRef.current) videoRef.current.volume = Math.max(0, Math.min(1, volume)); }, [volume]);
+
+  // HLS.js setup — supports M3U8/M3U streams + auto failover on fatal error
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !url) return;
+    setStreamError("");
+    let hls: Hls | null = null;
+    const isM3U8 = /\.m3u8?($|\?)/i.test(url);
+
+    if (isM3U8 && Hls.isSupported()) {
+      hls = new Hls({ enableWorker: true, lowLatencyMode: true, backBufferLength: 30 });
+      hls.loadSource(url);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.ERROR, (_e, data) => {
+        if (data.fatal) {
+          setStreamError("Stream error — try another server");
+          // Auto-advance to next server on fatal failure
+          if (!isUpcoming && server < servers.length - 1) setServer((s) => s + 1);
+        }
+      });
+    } else {
+      video.src = url;
+    }
+    return () => { if (hls) hls.destroy(); };
+  }, [url, isUpcoming]);
 
   const enterFullscreen = async () => {
     setShowPrompt(false);
@@ -66,7 +95,6 @@ function Player() {
     <div ref={wrapRef} className="relative min-h-screen bg-black text-white" style={{ filter: `brightness(${brightness})` }}>
       <video
         ref={videoRef}
-        src={url}
         className="absolute inset-0 h-full w-full object-contain"
         playsInline
         controls={false}
@@ -90,6 +118,9 @@ function Player() {
             <button key={s.name} onClick={() => setServer(i)} className={`shrink-0 rounded-full border px-4 py-1.5 text-xs ${i === server ? "border-cyan-400 bg-cyan-400/20 text-cyan-300" : "border-white/30 bg-black/30 text-white/80"}`}>{s.name}</button>
           ))}
         </div>
+      )}
+      {streamError && (
+        <div className="absolute bottom-20 left-1/2 z-20 -translate-x-1/2 rounded-full bg-red-500/90 px-4 py-1.5 text-xs font-bold text-white">{streamError}</div>
       )}
 
       <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center gap-6">

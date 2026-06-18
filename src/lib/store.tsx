@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export type MatchStatus = "live" | "upcoming" | "recent";
 export interface Match {
@@ -29,6 +30,9 @@ export interface AppState {
   telegramUrl: string;
   adRedirectUrl: string;
   updateNotice: { title: string; body: string; version: string };
+  maintenance: { enabled: boolean; title: string; message: string; apkUrl: string };
+  subscribePopupEnabled: boolean;
+  brand: { name: string; tagline: string };
 }
 
 const FLAGS: Record<string, string> = {
@@ -53,6 +57,9 @@ const DEFAULT_STATE: AppState = {
     body: "A newer version is available with improved UI, faster servers and bug fixes.",
     version: "22.0",
   },
+  maintenance: { enabled: false, title: "Under Maintenance", message: "We're upgrading our servers. Please check back soon.", apkUrl: "" },
+  subscribePopupEnabled: true,
+  brand: { name: "SPORTS Z", tagline: "LIVE HUB SYSTEM • SECURED MULTI-CDN PIPELINE" },
   ads: [
     { id: "a1", placement: "header", html: "<div style='padding:8px;text-align:center;color:#9ad;'>Header Ad — 728x90</div>", enabled: true },
     { id: "a2", placement: "inline", html: "<div style='padding:14px;text-align:center;color:#9ad;'>Inline Banner Ad — 320x100</div>", enabled: true },
@@ -84,19 +91,48 @@ const KEY = "sportsz-state-v1";
 
 const Ctx = createContext<{ state: AppState; setState: (s: AppState) => void } | null>(null);
 
+function merge(base: AppState, patch: Partial<AppState>): AppState {
+  return { ...base, ...patch };
+}
+
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, setStateRaw] = useState<AppState>(DEFAULT_STATE);
   const [hydrated, setHydrated] = useState(false);
+
   useEffect(() => {
+    // Hydrate from localStorage immediately for snappy paint
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) setStateRaw({ ...DEFAULT_STATE, ...JSON.parse(raw) });
+      if (raw) setStateRaw(merge(DEFAULT_STATE, JSON.parse(raw)));
     } catch {}
     setHydrated(true);
+
+    // Then pull from cloud + subscribe to realtime updates
+    let mounted = true;
+    supabase.from("app_settings").select("data").eq("id", 1).maybeSingle().then(({ data }) => {
+      if (!mounted || !data?.data) return;
+      const next = merge(DEFAULT_STATE, data.data as Partial<AppState>);
+      setStateRaw(next);
+      try { localStorage.setItem(KEY, JSON.stringify(next)); } catch {}
+    });
+    const channel = supabase
+      .channel("app_settings_sync")
+      .on("postgres_changes", { event: "*", schema: "public", table: "app_settings" }, (payload: any) => {
+        const d = payload.new?.data;
+        if (!d) return;
+        const next = merge(DEFAULT_STATE, d);
+        setStateRaw(next);
+        try { localStorage.setItem(KEY, JSON.stringify(next)); } catch {}
+      })
+      .subscribe();
+    return () => { mounted = false; supabase.removeChannel(channel); };
   }, []);
+
   const setState = (s: AppState) => {
     setStateRaw(s);
     try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {}
+    // Push to cloud (fire-and-forget). Realtime broadcasts back to other tabs/devices.
+    supabase.from("app_settings").upsert({ id: 1, data: s as any, updated_at: new Date().toISOString() }).then(() => {});
   };
   if (!hydrated) return null;
   return <Ctx.Provider value={{ state, setState }}>{children}</Ctx.Provider>;
