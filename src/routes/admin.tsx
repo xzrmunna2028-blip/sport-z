@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAdmin, useStore, type Match, type AdSlot as AdSlotT } from "@/lib/store";
+import { FIFA_PRESET } from "@/lib/fifaPreset";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin")({
   component: Admin,
@@ -75,8 +77,20 @@ function MatchesAdmin({ state, setState }: any) {
     setDraft({ ...empty, id: crypto.randomUUID() });
   };
   const del = (id: string) => setState({ ...state, matches: state.matches.filter((m: Match) => m.id !== id) });
+  const importFifa = () => {
+    const additions = FIFA_PRESET.map((m) => ({ ...m, id: crypto.randomUUID() }));
+    setState({ ...state, matches: [...state.matches, ...additions] });
+  };
+  const addServer = () => setDraft({ ...draft, servers: [...draft.servers, { name: `Server ${draft.servers.length + 1}`, url: "" }] });
+  const updateServer = (i: number, patch: Partial<{ name: string; url: string }>) =>
+    setDraft({ ...draft, servers: draft.servers.map((s, j) => j === i ? { ...s, ...patch } : s) });
+  const removeServer = (i: number) => setDraft({ ...draft, servers: draft.servers.filter((_, j) => j !== i) });
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-3">
+        <span className="text-sm">🏆 FIFA World Cup 2026 pre-list — {FIFA_PRESET.length} matches</span>
+        <button onClick={importFifa} className="rounded-full bg-emerald-400 px-4 py-1.5 text-xs font-bold text-black">Import all</button>
+      </div>
       <div className="rounded-xl border border-border bg-card p-4">
         <h2 className="mb-3 font-bold">Add / Edit Match</h2>
         <div className="grid grid-cols-2 gap-3">
@@ -94,12 +108,28 @@ function MatchesAdmin({ state, setState }: any) {
           </Field>
           <Field label="Coming Soon Video URL"><input className={inputCls} value={draft.upcomingVideoUrl || ""} onChange={(e) => setDraft({ ...draft, upcomingVideoUrl: e.target.value })} /></Field>
         </div>
+        <div className="mt-4 rounded-lg border border-border bg-background/40 p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-bold text-muted-foreground">M3U / HLS Servers for this match</span>
+            <button onClick={addServer} className="rounded bg-secondary px-2 py-1 text-xs">+ Add server</button>
+          </div>
+          {draft.servers.length === 0 && <p className="text-xs text-muted-foreground">No per-match servers — global Server 1/2/3 from Settings will be used.</p>}
+          <div className="space-y-2">
+            {draft.servers.map((s, i) => (
+              <div key={i} className="flex gap-2">
+                <input className={`${inputCls} w-28`} placeholder="Label" value={s.name} onChange={(e) => updateServer(i, { name: e.target.value })} />
+                <input className={inputCls} placeholder="https://…/stream.m3u8" value={s.url} onChange={(e) => updateServer(i, { url: e.target.value })} />
+                <button onClick={() => removeServer(i)} className="rounded border border-destructive px-2 text-xs text-destructive">×</button>
+              </div>
+            ))}
+          </div>
+        </div>
         <button onClick={save} className="mt-3 rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">Save</button>
       </div>
       <div className="space-y-2">
         {state.matches.map((m: Match) => (
           <div key={m.id} className="flex items-center justify-between rounded-lg border border-border bg-card p-3 text-sm">
-            <span>{m.flagA} {m.teamA} vs {m.teamB} {m.flagB} <span className="ml-2 rounded bg-secondary px-2 py-0.5 text-xs">{m.status}</span></span>
+            <span>{m.flagA} {m.teamA} vs {m.teamB} {m.flagB} <span className="ml-2 rounded bg-secondary px-2 py-0.5 text-xs">{m.status}</span> {m.servers.length > 0 && <span className="ml-1 rounded bg-emerald-500/20 px-2 py-0.5 text-xs text-emerald-300">{m.servers.length} srv</span>}</span>
             <span className="flex gap-2">
               <button onClick={() => setDraft(m)} className="rounded border border-border px-2 py-1 text-xs">Edit</button>
               <button onClick={() => del(m.id)} className="rounded border border-destructive px-2 py-1 text-xs text-destructive">Delete</button>
@@ -187,14 +217,30 @@ function AdsAdmin({ state, setState }: any) {
 
 function SettingsAdmin({ state, setState }: any) {
   const update = (patch: any) => setState({ ...state, ...patch });
+  const [subCount, setSubCount] = useState<number | null>(null);
+  useEffect(() => {
+    supabase.from("subscribers").select("id", { count: "exact", head: true }).then(({ count }) => setSubCount(count ?? 0));
+  }, []);
   return (
     <div className="space-y-4">
+      <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-4">
+        <h2 className="font-bold">Push Subscribers (OneSignal)</h2>
+        <p className="mt-1 text-2xl font-black text-emerald-300">{subCount ?? "…"}</p>
+        <p className="text-xs text-muted-foreground">Send broadcasts from your OneSignal dashboard (App ID 6fc4b9cc-…).</p>
+      </div>
+      <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 p-4 space-y-3">
+        <h2 className="font-bold">🛠 Maintenance Mode</h2>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={state.maintenance.enabled} onChange={(e) => update({ maintenance: { ...state.maintenance, enabled: e.target.checked } })} /> Put the site in maintenance mode</label>
+        <Field label="Title"><input className={inputCls} value={state.maintenance.title} onChange={(e) => update({ maintenance: { ...state.maintenance, title: e.target.value } })} /></Field>
+        <Field label="Message"><textarea className={inputCls} value={state.maintenance.message} onChange={(e) => update({ maintenance: { ...state.maintenance, message: e.target.value } })} /></Field>
+        <Field label="APK Download URL"><input className={inputCls} value={state.maintenance.apkUrl} onChange={(e) => update({ maintenance: { ...state.maintenance, apkUrl: e.target.value } })} /></Field>
+      </div>
       <div className="rounded-xl border border-border bg-card p-4 space-y-3">
         <h2 className="font-bold">Marquee / Notice Bar</h2>
         <input className={inputCls} value={state.marquee} onChange={(e) => update({ marquee: e.target.value })} />
       </div>
       <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-        <h2 className="font-bold">Server Links</h2>
+        <h2 className="font-bold">Global Fallback Server Links (M3U8)</h2>
         {(["server1","server2","server3"] as const).map((k) => (
           <Field key={k} label={k}><input className={inputCls} value={(state.servers as any)[k]} onChange={(e) => update({ servers: { ...state.servers, [k]: e.target.value } })} /></Field>
         ))}
@@ -205,6 +251,7 @@ function SettingsAdmin({ state, setState }: any) {
         <Field label="Telegram URL"><input className={inputCls} value={state.telegramUrl} onChange={(e) => update({ telegramUrl: e.target.value })} /></Field>
         <Field label="Premium Code"><input className={inputCls} value={state.premiumCode} onChange={(e) => update({ premiumCode: e.target.value })} /></Field>
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={state.gateEnabled} onChange={(e) => update({ gateEnabled: e.target.checked })} /> Enable pre-entry gate</label>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={state.subscribePopupEnabled} onChange={(e) => update({ subscribePopupEnabled: e.target.checked })} /> Show "Subscribe for 4K/HD" popup on entry</label>
       </div>
       <div className="rounded-xl border border-border bg-card p-4 space-y-3">
         <h2 className="font-bold">Update Notice</h2>
