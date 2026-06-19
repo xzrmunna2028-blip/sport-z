@@ -110,6 +110,19 @@ function MatchesAdmin({ state, setState }: any) {
           </Field>
           <Field label="Coming Soon Video URL"><input className={inputCls} value={draft.upcomingVideoUrl || ""} onChange={(e) => setDraft({ ...draft, upcomingVideoUrl: e.target.value })} /></Field>
         </div>
+        {draft.status === "live" && (
+          <div className="mt-3 rounded-lg border border-emerald-400/40 bg-emerald-500/10 p-3">
+            <Field label="Live started at (real-time minute counter starts here)">
+              <input
+                type="datetime-local"
+                className={inputCls}
+                value={draft.liveStartedAt ? new Date(draft.liveStartedAt).toISOString().slice(0,16) : ""}
+                onChange={(e) => setDraft({ ...draft, liveStartedAt: e.target.value ? new Date(e.target.value).toISOString() : undefined })}
+              />
+            </Field>
+            <button onClick={() => setDraft({ ...draft, liveStartedAt: new Date().toISOString() })} className="mt-2 rounded bg-emerald-400 px-3 py-1 text-xs font-bold text-black">Start Now</button>
+          </div>
+        )}
         <div className="mt-4 rounded-lg border border-border bg-background/40 p-3">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-bold text-muted-foreground">M3U / HLS Servers for this match</span>
