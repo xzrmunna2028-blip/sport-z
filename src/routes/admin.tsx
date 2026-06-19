@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useAdmin, useStore, type Match, type AdSlot as AdSlotT } from "@/lib/store";
+import { useAdmin, useStore, type Match, type AdSlot as AdSlotT, type SidebarItem } from "@/lib/store";
 import { FIFA_PRESET } from "@/lib/fifaPreset";
 import { supabase } from "@/integrations/supabase/client";
 
