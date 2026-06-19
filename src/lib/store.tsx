@@ -119,12 +119,22 @@ const DEFAULT_STATE: AppState = {
   ],
 };
 
-const KEY = "sportsz-state-v1";
+const KEY = "sportsz-state-v3";
 
 const Ctx = createContext<{ state: AppState; setState: (s: AppState) => void } | null>(null);
 
-function merge(base: AppState, patch: Partial<AppState>): AppState {
-  return { ...base, ...patch };
+function merge(base: AppState, patch: Partial<AppState> | null | undefined): AppState {
+  if (!patch || typeof patch !== "object") return base;
+  const out: any = { ...base, ...patch };
+  // Deep-merge nested objects so newly-added default fields are not lost
+  if (patch.sectionToggles) out.sectionToggles = { ...base.sectionToggles, ...patch.sectionToggles };
+  if (patch.maintenance) out.maintenance = { ...base.maintenance, ...patch.maintenance };
+  if (patch.updateNotice) out.updateNotice = { ...base.updateNotice, ...patch.updateNotice };
+  if (patch.servers) out.servers = { ...base.servers, ...patch.servers };
+  if (patch.brand) out.brand = { ...base.brand, ...patch.brand };
+  // For arrays with new defaults — if cloud has empty/missing, fall back to default
+  if (!Array.isArray(patch.sidebarItems) || patch.sidebarItems.length === 0) out.sidebarItems = base.sidebarItems;
+  return out;
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
