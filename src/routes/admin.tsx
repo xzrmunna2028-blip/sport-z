@@ -31,7 +31,7 @@ function Admin() {
   return <Dashboard onLogout={logout} />;
 }
 
-const TABS = ["Matches", "Categories", "Ads", "Settings"] as const;
+const TABS = ["Matches", "Categories", "Ads", "Sidebar", "Toggles", "Settings"] as const;
 
 function Dashboard({ onLogout }: { onLogout: () => void }) {
   const { state, setState } = useStore();
@@ -51,6 +51,8 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
         {tab === "Matches" && <MatchesAdmin state={state} setState={setState} />}
         {tab === "Categories" && <CategoriesAdmin state={state} setState={setState} />}
         {tab === "Ads" && <AdsAdmin state={state} setState={setState} />}
+        {tab === "Sidebar" && <SidebarAdmin state={state} setState={setState} />}
+        {tab === "Toggles" && <TogglesAdmin state={state} setState={setState} />}
         {tab === "Settings" && <SettingsAdmin state={state} setState={setState} />}
       </main>
     </div>
