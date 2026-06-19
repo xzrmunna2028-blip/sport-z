@@ -14,10 +14,20 @@ export interface Match {
   status: MatchStatus;
   servers: { name: string; url: string }[];
   upcomingVideoUrl?: string;
+  liveStartedAt?: string;
 }
 export interface Channel { id: string; name: string; logo: string; url: string; }
 export interface Category { id: string; name: string; icon: string; channels: Channel[]; }
 export interface AdSlot { id: string; placement: "header" | "footer" | "inline" | "player" | "popunder"; html: string; enabled: boolean; }
+export interface SidebarItem { id: string; label: string; icon: string; url?: string; color?: string; enabled: boolean; }
+export interface SectionToggles {
+  marquee: boolean;
+  sportPills: boolean;
+  statusTabs: boolean;
+  categoriesSection: boolean;
+  highlightsSection: boolean;
+  shareButton: boolean;
+}
 
 export interface AppState {
   marquee: string;
@@ -33,6 +43,10 @@ export interface AppState {
   maintenance: { enabled: boolean; title: string; message: string; apkUrl: string };
   subscribePopupEnabled: boolean;
   brand: { name: string; tagline: string };
+  sidebarItems: SidebarItem[];
+  sectionToggles: SectionToggles;
+  sourceRepoUrl: string;
+  subscribeSuccessMsg: string;
 }
 
 const FLAGS: Record<string, string> = {
