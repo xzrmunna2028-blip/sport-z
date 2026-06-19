@@ -50,7 +50,7 @@ function Player() {
       hls = new Hls({ enableWorker: true, lowLatencyMode: true, backBufferLength: 30 });
       hls.loadSource(url);
       hls.attachMedia(video);
-      hls.on(Hls.Events.ERROR, (_e, data) => {
+      hls.on(Hls.Events.ERROR, (_e: unknown, data: { fatal: boolean }) => {
         if (data.fatal) {
           setStreamError("Stream error — try another server");
           // Auto-advance to next server on fatal failure

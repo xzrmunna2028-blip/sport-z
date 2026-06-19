@@ -19,6 +19,8 @@
  */
 
 @theme inline {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Orbitron", "Inter", sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -146,5 +148,17 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
   }
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: 0.02em;
+  }
+}
+
+@utility neon-text {
+  color: oklch(0.95 0.05 200);
+  text-shadow: 0 0 8px var(--neon-cyan), 0 0 2px var(--neon-cyan);
 }

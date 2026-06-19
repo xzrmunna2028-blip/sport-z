@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useAdmin, useStore, type Match, type AdSlot as AdSlotT } from "@/lib/store";
+import { useAdmin, useStore, type Match, type AdSlot as AdSlotT, type SidebarItem } from "@/lib/store";
 import { FIFA_PRESET } from "@/lib/fifaPreset";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -31,7 +31,7 @@ function Admin() {
   return <Dashboard onLogout={logout} />;
 }
 
-const TABS = ["Matches", "Categories", "Ads", "Settings"] as const;
+const TABS = ["Matches", "Categories", "Ads", "Sidebar", "Toggles", "Settings"] as const;
 
 function Dashboard({ onLogout }: { onLogout: () => void }) {
   const { state, setState } = useStore();
@@ -51,6 +51,8 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
         {tab === "Matches" && <MatchesAdmin state={state} setState={setState} />}
         {tab === "Categories" && <CategoriesAdmin state={state} setState={setState} />}
         {tab === "Ads" && <AdsAdmin state={state} setState={setState} />}
+        {tab === "Sidebar" && <SidebarAdmin state={state} setState={setState} />}
+        {tab === "Toggles" && <TogglesAdmin state={state} setState={setState} />}
         {tab === "Settings" && <SettingsAdmin state={state} setState={setState} />}
       </main>
     </div>
@@ -108,6 +110,19 @@ function MatchesAdmin({ state, setState }: any) {
           </Field>
           <Field label="Coming Soon Video URL"><input className={inputCls} value={draft.upcomingVideoUrl || ""} onChange={(e) => setDraft({ ...draft, upcomingVideoUrl: e.target.value })} /></Field>
         </div>
+        {draft.status === "live" && (
+          <div className="mt-3 rounded-lg border border-emerald-400/40 bg-emerald-500/10 p-3">
+            <Field label="Live started at (real-time minute counter starts here)">
+              <input
+                type="datetime-local"
+                className={inputCls}
+                value={draft.liveStartedAt ? new Date(draft.liveStartedAt).toISOString().slice(0,16) : ""}
+                onChange={(e) => setDraft({ ...draft, liveStartedAt: e.target.value ? new Date(e.target.value).toISOString() : undefined })}
+              />
+            </Field>
+            <button onClick={() => setDraft({ ...draft, liveStartedAt: new Date().toISOString() })} className="mt-2 rounded bg-emerald-400 px-3 py-1 text-xs font-bold text-black">Start Now</button>
+          </div>
+        )}
         <div className="mt-4 rounded-lg border border-border bg-background/40 p-3">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-bold text-muted-foreground">M3U / HLS Servers for this match</span>
@@ -259,6 +274,117 @@ function SettingsAdmin({ state, setState }: any) {
         <Field label="Body"><textarea className={inputCls} value={state.updateNotice.body} onChange={(e) => update({ updateNotice: { ...state.updateNotice, body: e.target.value } })} /></Field>
         <Field label="Version"><input className={inputCls} value={state.updateNotice.version} onChange={(e) => update({ updateNotice: { ...state.updateNotice, version: e.target.value } })} /></Field>
       </div>
+      <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+        <h2 className="font-bold">Subscribe Success Popup</h2>
+        <Field label="Congratulations message shown after subscribing">
+          <textarea className={inputCls} value={state.subscribeSuccessMsg} onChange={(e) => update({ subscribeSuccessMsg: e.target.value })} />
+        </Field>
+      </div>
+      <div className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 p-4 space-y-3">
+        <h2 className="font-bold">📦 Download Source Code (ZIP)</h2>
+        <p className="text-xs text-muted-foreground">Connect this project to GitHub from Lovable settings (top-right → GitHub), then paste your repo URL here. The download button will fetch the latest ZIP archive in one click.</p>
+        <Field label="GitHub repo URL (e.g. https://github.com/you/sports-z)"><input className={inputCls} value={state.sourceRepoUrl} onChange={(e) => update({ sourceRepoUrl: e.target.value })} /></Field>
+        <a
+          href={state.sourceRepoUrl ? `${state.sourceRepoUrl.replace(/\/$/, "")}/archive/refs/heads/main.zip` : "#"}
+          onClick={(e) => { if (!state.sourceRepoUrl) { e.preventDefault(); alert("Set your GitHub repo URL first."); } }}
+          className="inline-block rounded-full bg-cyan-400 px-5 py-2 text-sm font-bold text-black"
+        >⬇ Download full source as ZIP</a>
+      </div>
+    </div>
+  );
+}
+
+const ICON_CHOICES = ["Settings","Bell","MessageSquare","Copyright","Share2","Mail","RefreshCw","LogOut","Trophy","Tv","Heart","Zap","Globe","Video","Tag"];
+const ICON_HINTS: Record<string,string> = {
+  ad: "Tag", advertisement: "Tag", notice: "Bell", alert: "Bell", chat: "MessageSquare",
+  telegram: "MessageSquare", share: "Share2", mail: "Mail", email: "Mail", update: "RefreshCw",
+  exit: "LogOut", logout: "LogOut", quality: "Settings", setting: "Settings", trophy: "Trophy",
+  channel: "Tv", live: "Video", world: "Globe", love: "Heart", fast: "Zap",
+};
+function suggestIcon(label: string) {
+  const lc = label.toLowerCase();
+  for (const k of Object.keys(ICON_HINTS)) if (lc.includes(k)) return ICON_HINTS[k];
+  return "Tag";
+}
+
+function SidebarAdmin({ state, setState }: any) {
+  const [draft, setDraft] = useState<SidebarItem>({ id: "", label: "", icon: "Tag", url: "", color: "#22d3ee", enabled: true });
+  const save = () => {
+    if (!draft.label) return;
+    const item = { ...draft, id: draft.id || crypto.randomUUID() };
+    const exists = state.sidebarItems.find((s: SidebarItem) => s.id === item.id);
+    const sidebarItems = exists ? state.sidebarItems.map((s: SidebarItem) => s.id === item.id ? item : s) : [...state.sidebarItems, item];
+    setState({ ...state, sidebarItems });
+    setDraft({ id: "", label: "", icon: "Tag", url: "", color: "#22d3ee", enabled: true });
+  };
+  const del = (id: string) => setState({ ...state, sidebarItems: state.sidebarItems.filter((s: SidebarItem) => s.id !== id) });
+  const toggle = (id: string) => setState({ ...state, sidebarItems: state.sidebarItems.map((s: SidebarItem) => s.id === id ? { ...s, enabled: !s.enabled } : s) });
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+        <h2 className="font-bold">Add / Edit Sidebar Item</h2>
+        <p className="text-xs text-muted-foreground">Type a label like "Ad" or "Telegram" — the icon will be auto-suggested.</p>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Label">
+            <input className={inputCls} value={draft.label} onChange={(e) => {
+              const label = e.target.value;
+              setDraft({ ...draft, label, icon: draft.icon === "Tag" || !draft.id ? suggestIcon(label) : draft.icon });
+            }} />
+          </Field>
+          <Field label="Icon">
+            <select className={inputCls} value={draft.icon} onChange={(e) => setDraft({ ...draft, icon: e.target.value })}>
+              {ICON_CHOICES.map((i) => <option key={i}>{i}</option>)}
+            </select>
+          </Field>
+          <Field label="URL (optional)"><input className={inputCls} value={draft.url || ""} onChange={(e) => setDraft({ ...draft, url: e.target.value })} /></Field>
+          <Field label="Color"><input type="color" className={`${inputCls} h-10 p-1`} value={draft.color || "#22d3ee"} onChange={(e) => setDraft({ ...draft, color: e.target.value })} /></Field>
+        </div>
+        <button onClick={save} className="rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">{draft.id ? "Update" : "Add"} item</button>
+      </div>
+      <div className="space-y-2">
+        {state.sidebarItems.map((s: SidebarItem) => (
+          <div key={s.id} className="flex items-center justify-between rounded-lg border border-border bg-card p-3 text-sm">
+            <span className="flex items-center gap-2">
+              <span className="h-3 w-3 rounded-full" style={{ background: s.color || "var(--color-primary)" }} />
+              <strong>{s.label}</strong>
+              <span className="text-xs text-muted-foreground">{s.icon}{s.url ? ` · ${s.url}` : ""}</span>
+              {!s.enabled && <span className="rounded bg-muted px-2 py-0.5 text-xs">off</span>}
+            </span>
+            <span className="flex gap-2">
+              <button onClick={() => toggle(s.id)} className="rounded border border-border px-2 py-1 text-xs">{s.enabled ? "Disable" : "Enable"}</button>
+              <button onClick={() => setDraft(s)} className="rounded border border-border px-2 py-1 text-xs">Edit</button>
+              <button onClick={() => del(s.id)} className="rounded border border-destructive px-2 py-1 text-xs text-destructive">Delete</button>
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TogglesAdmin({ state, setState }: any) {
+  const t = state.sectionToggles;
+  const set = (k: string, v: boolean) => setState({ ...state, sectionToggles: { ...t, [k]: v } });
+  const rows: [keyof typeof t, string, string][] = [
+    ["marquee", "Marquee / Notice bar", "The scrolling text under the header"],
+    ["sportPills", "Sport category pills", "All / Cricket / Football pills on home"],
+    ["statusTabs", "Status tabs (Recent / Live / Upcoming)", "Filter chips on home"],
+    ["categoriesSection", "Categories tab in bottom nav", "Hides the Categories page link"],
+    ["highlightsSection", "Highlights tab in bottom nav", "Hides the Highlights page link"],
+    ["shareButton", "Share button in header", "Shown only when enabled"],
+  ];
+  return (
+    <div className="space-y-2">
+      <p className="text-xs text-muted-foreground">Turn any homepage section on or off in real time. Changes sync instantly to every visitor.</p>
+      {rows.map(([k, label, hint]) => (
+        <label key={k as string} className="flex items-center justify-between rounded-lg border border-border bg-card p-3">
+          <span>
+            <span className="block font-semibold">{label}</span>
+            <span className="block text-xs text-muted-foreground">{hint}</span>
+          </span>
+          <input type="checkbox" className="h-5 w-10" checked={!!t[k]} onChange={(e) => set(k as string, e.target.checked)} />
+        </label>
+      ))}
     </div>
   );
 }

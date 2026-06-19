@@ -14,10 +14,20 @@ export interface Match {
   status: MatchStatus;
   servers: { name: string; url: string }[];
   upcomingVideoUrl?: string;
+  liveStartedAt?: string;
 }
 export interface Channel { id: string; name: string; logo: string; url: string; }
 export interface Category { id: string; name: string; icon: string; channels: Channel[]; }
 export interface AdSlot { id: string; placement: "header" | "footer" | "inline" | "player" | "popunder"; html: string; enabled: boolean; }
+export interface SidebarItem { id: string; label: string; icon: string; url?: string; color?: string; enabled: boolean; }
+export interface SectionToggles {
+  marquee: boolean;
+  sportPills: boolean;
+  statusTabs: boolean;
+  categoriesSection: boolean;
+  highlightsSection: boolean;
+  shareButton: boolean;
+}
 
 export interface AppState {
   marquee: string;
@@ -33,6 +43,10 @@ export interface AppState {
   maintenance: { enabled: boolean; title: string; message: string; apkUrl: string };
   subscribePopupEnabled: boolean;
   brand: { name: string; tagline: string };
+  sidebarItems: SidebarItem[];
+  sectionToggles: SectionToggles;
+  sourceRepoUrl: string;
+  subscribeSuccessMsg: string;
 }
 
 const FLAGS: Record<string, string> = {
@@ -60,6 +74,24 @@ const DEFAULT_STATE: AppState = {
   maintenance: { enabled: false, title: "Under Maintenance", message: "We're upgrading our servers. Please check back soon.", apkUrl: "" },
   subscribePopupEnabled: true,
   brand: { name: "SPORTS Z", tagline: "LIVE HUB SYSTEM • SECURED MULTI-CDN PIPELINE" },
+  sourceRepoUrl: "",
+  subscribeSuccessMsg: "🎉 Congratulations! You are now a Sports Z Partner. Enjoy 4K live streaming!",
+  sidebarItems: [
+    { id: "s1", label: "Video Quality", icon: "Settings", enabled: true },
+    { id: "s2", label: "Notice", icon: "Bell", enabled: true },
+    { id: "s3", label: "Join Us", icon: "MessageSquare", enabled: true, url: "https://t.me/sportsz" },
+    { id: "s4", label: "Copyright", icon: "Copyright", enabled: true },
+    { id: "s5", label: "Update App", icon: "RefreshCw", enabled: true },
+    { id: "s6", label: "Exit", icon: "LogOut", enabled: true },
+  ],
+  sectionToggles: {
+    marquee: true,
+    sportPills: true,
+    statusTabs: true,
+    categoriesSection: true,
+    highlightsSection: true,
+    shareButton: false,
+  },
   ads: [
     { id: "a1", placement: "header", html: "<div style='padding:8px;text-align:center;color:#9ad;'>Header Ad — 728x90</div>", enabled: true },
     { id: "a2", placement: "inline", html: "<div style='padding:14px;text-align:center;color:#9ad;'>Inline Banner Ad — 320x100</div>", enabled: true },
