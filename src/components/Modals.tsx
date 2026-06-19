@@ -12,8 +12,8 @@ export function EntryModals() {
   const finish = () => { sessionStorage.setItem("sportsz-modals", "seen"); setStep("done"); };
   if (step === "done") return null;
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/70 p-4 sm:items-center">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-glow)]">
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/30 p-4 backdrop-blur-sm sm:items-center animate-fade-in">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-card/95 p-5 shadow-[var(--shadow-glow)] animate-scale-in">
         {step === "update" ? (
           <>
             <div className="flex items-center gap-3">
