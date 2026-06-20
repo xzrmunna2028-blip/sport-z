@@ -64,9 +64,6 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
               <button key={it.id} className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm font-medium hover:bg-secondary">{inner}</button>
             );
           })}
-          <Link to="/admin" onClick={onClose} className="mt-2 flex items-center gap-3 rounded-md px-3 py-3 text-left text-sm hover:bg-secondary">
-            <Settings className="h-5 w-5 text-accent" /> Admin Panel
-          </Link>
         </nav>
       </aside>
     </>

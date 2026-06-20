@@ -33,7 +33,7 @@ export function SubscribeModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/30 p-4 backdrop-blur-xl animate-fade-in">
       <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-emerald-400/40 bg-gradient-to-b from-[#0a1f15] to-[#04140d] p-6 shadow-[0_0_60px_rgba(16,185,129,.35)] animate-scale-in">
         <button onClick={onClose} aria-label="close" className="absolute right-3 top-3 rounded-full bg-white/5 p-1.5 text-emerald-300/80 hover:bg-white/10"><X className="h-4 w-4" /></button>
         {success ? (

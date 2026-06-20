@@ -36,7 +36,6 @@ export function AppGate({ children }: { children: ReactNode }) {
           {state.maintenance.apkUrl && (
             <a href={state.maintenance.apkUrl} target="_blank" rel="noreferrer" className="mt-5 inline-block rounded-full bg-emerald-400 px-6 py-3 font-bold text-black shadow-[0_0_25px_rgba(16,185,129,.6)]">Download Latest APK</a>
           )}
-          <a href="/admin" className="mt-3 block text-xs text-emerald-400/60 underline">Admin login</a>
         </div>
       </div>
     );
