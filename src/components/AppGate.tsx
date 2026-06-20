@@ -22,7 +22,11 @@ export function AppGate({ children }: { children: ReactNode }) {
     }
   }, [splashDone, state.subscribePopupEnabled]);
 
-  if (state.maintenance.enabled) {
+  // Allow admins to always reach /admin even when maintenance is ON,
+  // so they can turn it back off.
+  const path = typeof window !== "undefined" ? window.location.pathname : "";
+  const isAdminRoute = path.startsWith("/admin");
+  if (state.maintenance.enabled && !isAdminRoute) {
     return (
       <div className="grid min-h-screen place-items-center bg-[#04140d] p-6 text-emerald-200">
         <div className="max-w-md text-center">
@@ -32,6 +36,7 @@ export function AppGate({ children }: { children: ReactNode }) {
           {state.maintenance.apkUrl && (
             <a href={state.maintenance.apkUrl} target="_blank" rel="noreferrer" className="mt-5 inline-block rounded-full bg-emerald-400 px-6 py-3 font-bold text-black shadow-[0_0_25px_rgba(16,185,129,.6)]">Download Latest APK</a>
           )}
+          <a href="/admin" className="mt-3 block text-xs text-emerald-400/60 underline">Admin login</a>
         </div>
       </div>
     );
