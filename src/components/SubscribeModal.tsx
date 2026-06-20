@@ -14,18 +14,22 @@ export function SubscribeModal({ onClose }: { onClose: () => void }) {
 
   const subscribe = async () => {
     setLoading(true); setErr("");
-    try {
-      const playerId = await subscribeToPush();
-      await supabase.from("subscribers").insert({
-        email: email.trim() || null,
-        onesignal_player_id: playerId,
-        user_agent: navigator.userAgent.slice(0, 200),
-      });
-      localStorage.setItem("sportsz-subscribed", "1");
-      setSuccess(true);
-    } catch (e: any) {
-      setErr(e?.message || "Could not subscribe");
-    } finally { setLoading(false); }
+    // Optimistic: show success immediately, do push + DB in background.
+    localStorage.setItem("sportsz-subscribed", "1");
+    setSuccess(true);
+    setLoading(false);
+    (async () => {
+      try {
+        const playerId = await subscribeToPush();
+        await supabase.from("subscribers").insert({
+          email: email.trim() || null,
+          onesignal_player_id: playerId,
+          user_agent: navigator.userAgent.slice(0, 200),
+        });
+      } catch (e) {
+        console.warn("[subscribe] background register failed", e);
+      }
+    })();
   };
 
   return (
