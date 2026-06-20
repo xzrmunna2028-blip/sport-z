@@ -60,10 +60,18 @@ function Player() {
       hls.on(Hls.Events.LEVEL_SWITCHED, (_e, data: { level: number }) => {
         setCurrentLevel(hls!.autoLevelEnabled ? -1 : data.level);
       });
-      hls.on(Hls.Events.ERROR, (_e, data: { fatal: boolean }) => {
-        if (data.fatal) {
-          setStreamError("Stream error — trying next server");
-          if (!isUpcoming && server < servers.length - 1) setServer((s) => s + 1);
+      hls.on(Hls.Events.ERROR, (_e, data: { fatal: boolean; type?: string }) => {
+        if (!data.fatal) return;
+        // Try in-place recovery first for non-network errors
+        if (data.type === "mediaError") {
+          try { hls!.recoverMediaError(); return; } catch {}
+        }
+        // Auto-failover: cycle to next server (loop back to 0)
+        if (!isUpcoming && servers.length > 1) {
+          setStreamError("Switching server…");
+          setServer((s) => (s + 1) % servers.length);
+        } else {
+          setStreamError("Stream unavailable");
         }
       });
       hlsRef.current = hls;
