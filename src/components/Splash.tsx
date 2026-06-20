@@ -6,12 +6,14 @@ export function Splash({ onDone }: { onDone: () => void }) {
   const { state } = useStore();
   const [pct, setPct] = useState(0);
   useEffect(() => {
+    // Smooth, natural ~3.2s boot — not instant, not too slow.
     let p = 0;
     const t = setInterval(() => {
-      p += Math.random() * 18 + 6;
-      if (p >= 100) { p = 100; clearInterval(t); setTimeout(onDone, 350); }
+      const remaining = 100 - p;
+      p += Math.max(1.5, remaining * 0.08); // ease-out feel
+      if (p >= 100) { p = 100; clearInterval(t); setTimeout(onDone, 500); }
       setPct(Math.min(100, Math.round(p)));
-    }, 140);
+    }, 110);
     return () => clearInterval(t);
   }, [onDone]);
   return (
