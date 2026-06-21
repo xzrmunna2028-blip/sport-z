@@ -15,9 +15,27 @@ function Watch() {
   const [seconds, setSeconds] = useState(15);
   const [started, setStarted] = useState(false);
 
+  const AD_BYPASS_KEY = "sportsz-ad-bypass-until";
+  const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+
+  // If user already watched an ad in the last 12 hours, skip straight to the player.
+  useEffect(() => {
+    try {
+      const until = Number(localStorage.getItem(AD_BYPASS_KEY) || 0);
+      if (until && until > Date.now()) {
+        nav({ to: "/play/$matchId", params: { matchId }, replace: true });
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (!started) return;
-    if (seconds <= 0) { nav({ to: "/play/$matchId", params: { matchId } }); return; }
+    if (seconds <= 0) {
+      try { localStorage.setItem(AD_BYPASS_KEY, String(Date.now() + TWELVE_HOURS_MS)); } catch {}
+      nav({ to: "/play/$matchId", params: { matchId }, replace: true });
+      return;
+    }
     const t = setTimeout(() => setSeconds((s) => s - 1), 1000);
     return () => clearTimeout(t);
   }, [seconds, started, matchId, nav]);
