@@ -41,45 +41,59 @@ function Player() {
 
   useEffect(() => { if (videoRef.current) videoRef.current.volume = Math.max(0, Math.min(1, volume)); }, [volume]);
 
-  // HLS.js setup with quality-level reporting + auto failover
+  // HLS.js setup — reuse instance across URL changes for fast channel/server switching.
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !url) return;
     setStreamError("");
     setLevels([]);
     setCurrentLevel(-1);
-    let hls: Hls | null = null;
     const isM3U8 = /\.m3u8?($|\?)/i.test(url);
+
     if (isM3U8 && Hls.isSupported()) {
-      hls = new Hls({ enableWorker: true, lowLatencyMode: true, backBufferLength: 30 });
+      let hls = hlsRef.current;
+      const isFresh = !hls;
+      if (!hls) {
+        hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: true,
+          backBufferLength: 15,
+          maxBufferLength: 20,
+          maxMaxBufferLength: 60,
+        });
+        hls.attachMedia(video);
+        hlsRef.current = hls;
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          setLevels(hls!.levels.map((l, i) => ({ height: l.height, bitrate: l.bitrate, index: i })));
+          video.play().catch(() => {});
+        });
+        hls.on(Hls.Events.LEVEL_SWITCHED, (_e, data: { level: number }) => {
+          setCurrentLevel(hls!.autoLevelEnabled ? -1 : data.level);
+        });
+        hls.on(Hls.Events.ERROR, (_e, data: { fatal: boolean; type?: string }) => {
+          if (!data.fatal) return;
+          if (data.type === "mediaError") {
+            try { hls!.recoverMediaError(); return; } catch {}
+          }
+          if (!isUpcoming && servers.length > 1) {
+            setStreamError("Switching server…");
+            setServer((s) => (s + 1) % servers.length);
+          } else {
+            setStreamError("Stream unavailable");
+          }
+        });
+      }
       hls.loadSource(url);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        setLevels(hls!.levels.map((l, i) => ({ height: l.height, bitrate: l.bitrate, index: i })));
-      });
-      hls.on(Hls.Events.LEVEL_SWITCHED, (_e, data: { level: number }) => {
-        setCurrentLevel(hls!.autoLevelEnabled ? -1 : data.level);
-      });
-      hls.on(Hls.Events.ERROR, (_e, data: { fatal: boolean; type?: string }) => {
-        if (!data.fatal) return;
-        // Try in-place recovery first for non-network errors
-        if (data.type === "mediaError") {
-          try { hls!.recoverMediaError(); return; } catch {}
-        }
-        // Auto-failover: cycle to next server (loop back to 0)
-        if (!isUpcoming && servers.length > 1) {
-          setStreamError("Switching server…");
-          setServer((s) => (s + 1) % servers.length);
-        } else {
-          setStreamError("Stream unavailable");
-        }
-      });
-      hlsRef.current = hls;
+      if (!isFresh) video.play().catch(() => {});
     } else {
+      // Tear down HLS when switching to a native source.
+      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
       video.src = url;
+      video.play().catch(() => {});
     }
-    return () => { if (hls) hls.destroy(); hlsRef.current = null; };
   }, [url, isUpcoming]);
+
+  useEffect(() => () => { hlsRef.current?.destroy(); hlsRef.current = null; }, []);
 
   // Auto-hide controls after 3s of no interaction
   const bumpControls = () => {

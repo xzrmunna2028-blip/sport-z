@@ -92,11 +92,7 @@ const DEFAULT_STATE: AppState = {
     highlightsSection: true,
     shareButton: false,
   },
-  ads: [
-    { id: "a1", placement: "header", html: "<div style='padding:8px;text-align:center;color:#9ad;'>Header Ad — 728x90</div>", enabled: true },
-    { id: "a2", placement: "inline", html: "<div style='padding:14px;text-align:center;color:#9ad;'>Inline Banner Ad — 320x100</div>", enabled: true },
-    { id: "a3", placement: "footer", html: "<div style='padding:8px;text-align:center;color:#9ad;'>Footer Ad</div>", enabled: true },
-  ],
+  ads: [],
   matches: [
     { id: "m1", sport: "Football", league: "FIFA World Cup", teamA: "Qatar", teamB: "Switzerland", flagA: FLAGS.QA, flagB: FLAGS.CH, time: "00:20:00", status: "live", servers: [] },
     { id: "m2", sport: "Cricket", league: "ICC Women World T20", teamA: "WI-W", teamB: "NZ-W", flagA: FLAGS.WI, flagB: FLAGS.NZ, time: "01:50:00", status: "live", servers: [] },
