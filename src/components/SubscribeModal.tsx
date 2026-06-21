@@ -19,15 +19,18 @@ export function SubscribeModal({ onClose }: { onClose: () => void }) {
     setSuccess(true);
     setLoading(false);
     (async () => {
+      let playerId: string | null = null;
+      try { playerId = await subscribeToPush(); }
+      catch (e) { console.warn("[subscribe] push register failed", e); }
       try {
-        const playerId = await subscribeToPush();
-        await supabase.from("subscribers").insert({
+        const { error } = await supabase.from("subscribers").insert({
           email: email.trim() || null,
           onesignal_player_id: playerId,
           user_agent: navigator.userAgent.slice(0, 200),
         });
+        if (error) console.error("[subscribe] insert error", error);
       } catch (e) {
-        console.warn("[subscribe] background register failed", e);
+        console.error("[subscribe] insert threw", e);
       }
     })();
   };

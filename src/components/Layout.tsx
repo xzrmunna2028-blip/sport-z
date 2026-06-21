@@ -11,7 +11,13 @@ const ICONS: Record<string, any> = {
 
 export function AdSlot({ placement }: { placement: "header" | "footer" | "inline" | "player" | "popunder" }) {
   const { state } = useStore();
-  const ads = state.ads.filter((a) => a.enabled && a.placement === placement);
+  // Hide legacy placeholder ads ("Header Ad — 728x90", "Inline Banner Ad", "Footer Ad")
+  // so the homepage never shows "place ad here" boxes — only real admin-added ads render.
+  const isPlaceholder = (html: string) =>
+    /Header Ad —|Inline Banner Ad|^\s*<div[^>]*>\s*Footer Ad\s*<\/div>\s*$/i.test(html);
+  const ads = state.ads.filter(
+    (a) => a.enabled && a.placement === placement && a.html?.trim() && !isPlaceholder(a.html),
+  );
   if (!ads.length) return null;
   return (
     <div className="space-y-2">
