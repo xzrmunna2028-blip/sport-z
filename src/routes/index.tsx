@@ -50,6 +50,13 @@ function Home() {
       </div>
       )}
 
+      <Link to="/fifa" className="mt-3 flex items-center justify-between rounded-xl border border-primary/40 bg-gradient-to-r from-yellow-500/15 via-card to-emerald-600/15 p-3 shadow-[var(--shadow-glow)]">
+        <span className="flex items-center gap-2 text-sm font-bold text-foreground">
+          <Trophy className="h-4 w-4 text-yellow-400" /> FIFA World Cup 2026 — Live Dashboard
+        </span>
+        <span className="rounded bg-destructive px-2 py-0.5 text-[10px] font-bold text-destructive-foreground">LIVE</span>
+      </Link>
+
       {state.sectionToggles?.statusTabs && (
       <div className="mt-3 flex gap-2 overflow-x-auto">
         {([
