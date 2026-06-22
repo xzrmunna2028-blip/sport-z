@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as HighlightsRouteImport } from './routes/highlights'
 import { Route as GateRouteImport } from './routes/gate'
+import { Route as FifaRouteImport } from './routes/fifa'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -26,6 +27,11 @@ const HighlightsRoute = HighlightsRouteImport.update({
 const GateRoute = GateRouteImport.update({
   id: '/gate',
   path: '/gate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FifaRoute = FifaRouteImport.update({
+  id: '/fifa',
+  path: '/fifa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CategoriesRoute = CategoriesRouteImport.update({
@@ -63,6 +69,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/categories': typeof CategoriesRouteWithChildren
+  '/fifa': typeof FifaRoute
   '/gate': typeof GateRoute
   '/highlights': typeof HighlightsRoute
   '/categories/$id': typeof CategoriesIdRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/categories': typeof CategoriesRouteWithChildren
+  '/fifa': typeof FifaRoute
   '/gate': typeof GateRoute
   '/highlights': typeof HighlightsRoute
   '/categories/$id': typeof CategoriesIdRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/categories': typeof CategoriesRouteWithChildren
+  '/fifa': typeof FifaRoute
   '/gate': typeof GateRoute
   '/highlights': typeof HighlightsRoute
   '/categories/$id': typeof CategoriesIdRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/categories'
+    | '/fifa'
     | '/gate'
     | '/highlights'
     | '/categories/$id'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/categories'
+    | '/fifa'
     | '/gate'
     | '/highlights'
     | '/categories/$id'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/categories'
+    | '/fifa'
     | '/gate'
     | '/highlights'
     | '/categories/$id'
@@ -127,6 +139,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   CategoriesRoute: typeof CategoriesRouteWithChildren
+  FifaRoute: typeof FifaRoute
   GateRoute: typeof GateRoute
   HighlightsRoute: typeof HighlightsRoute
   PlayMatchIdRoute: typeof PlayMatchIdRoute
@@ -147,6 +160,13 @@ declare module '@tanstack/react-router' {
       path: '/gate'
       fullPath: '/gate'
       preLoaderRoute: typeof GateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fifa': {
+      id: '/fifa'
+      path: '/fifa'
+      fullPath: '/fifa'
+      preLoaderRoute: typeof FifaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/categories': {
@@ -210,6 +230,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   CategoriesRoute: CategoriesRouteWithChildren,
+  FifaRoute: FifaRoute,
   GateRoute: GateRoute,
   HighlightsRoute: HighlightsRoute,
   PlayMatchIdRoute: PlayMatchIdRoute,
