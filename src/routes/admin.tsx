@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAdmin, useStore, type Match, type AdSlot as AdSlotT, type SidebarItem } from "@/lib/store";
 import { FIFA_PRESET } from "@/lib/fifaPreset";
+import { flagForTeam } from "@/lib/teamFlags";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin")({
@@ -98,8 +99,14 @@ function MatchesAdmin({ state, setState }: any) {
         <div className="grid grid-cols-2 gap-3">
           <Field label="Sport"><input className={inputCls} value={draft.sport} onChange={(e) => setDraft({ ...draft, sport: e.target.value })} /></Field>
           <Field label="League"><input className={inputCls} value={draft.league} onChange={(e) => setDraft({ ...draft, league: e.target.value })} /></Field>
-          <Field label="Team A"><input className={inputCls} value={draft.teamA} onChange={(e) => setDraft({ ...draft, teamA: e.target.value })} /></Field>
-          <Field label="Team B"><input className={inputCls} value={draft.teamB} onChange={(e) => setDraft({ ...draft, teamB: e.target.value })} /></Field>
+          <Field label="Team A"><input className={inputCls} value={draft.teamA} onChange={(e) => {
+            const v = e.target.value; const auto = flagForTeam(v);
+            setDraft({ ...draft, teamA: v, flagA: auto ?? draft.flagA });
+          }} /></Field>
+          <Field label="Team B"><input className={inputCls} value={draft.teamB} onChange={(e) => {
+            const v = e.target.value; const auto = flagForTeam(v);
+            setDraft({ ...draft, teamB: v, flagB: auto ?? draft.flagB });
+          }} /></Field>
           <Field label="Flag A (emoji)"><input className={inputCls} value={draft.flagA} onChange={(e) => setDraft({ ...draft, flagA: e.target.value })} /></Field>
           <Field label="Flag B (emoji)"><input className={inputCls} value={draft.flagB} onChange={(e) => setDraft({ ...draft, flagB: e.target.value })} /></Field>
           <Field label="Time / Date"><input className={inputCls} value={draft.time} onChange={(e) => setDraft({ ...draft, time: e.target.value })} /></Field>
