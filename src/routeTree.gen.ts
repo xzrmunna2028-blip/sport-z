@@ -14,6 +14,7 @@ import { Route as GateRouteImport } from './routes/gate'
 import { Route as FifaRouteImport } from './routes/fifa'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AdRouteImport } from './routes/ad'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WatchMatchIdRouteImport } from './routes/watch.$matchId'
 import { Route as PlayMatchIdRouteImport } from './routes/play.$matchId'
@@ -44,6 +45,11 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdRoute = AdRouteImport.update({
+  id: '/ad',
+  path: '/ad',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -67,6 +73,7 @@ const CategoriesIdRoute = CategoriesIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ad': typeof AdRoute
   '/admin': typeof AdminRoute
   '/categories': typeof CategoriesRouteWithChildren
   '/fifa': typeof FifaRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ad': typeof AdRoute
   '/admin': typeof AdminRoute
   '/categories': typeof CategoriesRouteWithChildren
   '/fifa': typeof FifaRoute
@@ -90,6 +98,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ad': typeof AdRoute
   '/admin': typeof AdminRoute
   '/categories': typeof CategoriesRouteWithChildren
   '/fifa': typeof FifaRoute
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ad'
     | '/admin'
     | '/categories'
     | '/fifa'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ad'
     | '/admin'
     | '/categories'
     | '/fifa'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/ad'
     | '/admin'
     | '/categories'
     | '/fifa'
@@ -137,6 +149,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdRoute: typeof AdRoute
   AdminRoute: typeof AdminRoute
   CategoriesRoute: typeof CategoriesRouteWithChildren
   FifaRoute: typeof FifaRoute
@@ -181,6 +194,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ad': {
+      id: '/ad'
+      path: '/ad'
+      fullPath: '/ad'
+      preLoaderRoute: typeof AdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -228,6 +248,7 @@ const CategoriesRouteWithChildren = CategoriesRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdRoute: AdRoute,
   AdminRoute: AdminRoute,
   CategoriesRoute: CategoriesRouteWithChildren,
   FifaRoute: FifaRoute,
